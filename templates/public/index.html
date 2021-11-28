@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Applet</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.6.0/dist/chart.min.js"></script>
+    <style>
+        .chartCanvas{
+            width: 70% !important;
+            height: 80vh !important;
+            margin-left: 15%;
+            margin-top: 10vh;
+        }
+    </style>
+</head>
+<body>
+    <!-- area to load chartjs chart -->
+    <canvas id="linechart" class="chartCanvas"></canvas>
+</body>
+<script defer>
+    var jdata;       // stores JSON data from Fetch
+    var labels = []; // stores timestamp labels
+    var datav = [];  // stores tempreture difference values
+
+    async function getJSON() {
+        // Clears the array for refresh
+        labels = [];
+        datav = [];
+
+        // Fetching the data from backend
+        var mydata = await fetch('data');
+
+        // Checking response
+        if (mydata.status === 200) {
+
+            // Parsing and formatting the data
+            let data = await mydata.text();
+            jdata = JSON.parse(data);
+
+            // Loading the data for refresh
+            for(i in jdata)
+            {
+                labels.push(i);
+                datav.push(jdata[i]);
+            }
+
+            // Updating the chart
+            myChart.config.data.datasets[0].data = datav;
+            myChart.config.data.labels = labels;
+            myChart.update('active');
+            
+        }
+    }
+
+
+    getJSON();                   // First fetch
+    setInterval(getJSON, 60000); // Refreshing data every 60 seconds
+
+
+    // Initializing ChartJS
+    const cdata = {
+        labels: labels,
+        datasets: [{
+            label: 'Temperature difference',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: datav,
+        }]
+    };
+    const config = {
+        type: 'line',
+        data: cdata,
+        options: { }
+    };
+
+    // publishing Chartjs chart on canvas
+    const myChart = new Chart(document.getElementById('linechart'), config);
+
+</script>
+</html>
